@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="Mike Frank" />
+<meta name="author" content="MH Tessler (working with S Bridgers)" />
 
 <meta name="date" content="2015-01-11" />
 
@@ -54,7 +54,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div id="header">
 <h1 class="title">Psych 254 W15 PS #1</h1>
-<h4 class="author"><em>Mike Frank</em></h4>
+<h4 class="author"><em>MH Tessler (working with S Bridgers)</em></h4>
 <h4 class="date"><em>January 11, 2015</em></h4>
 </div>
 
@@ -71,8 +71,8 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <pre class="r"><code>rm(list=ls())
 library(tidyr)
 library(dplyr)
-setwd(&quot;~/Documents/class/15.1/psych254_materials/analyses&quot;)
-source(&quot;../helper/useful.R&quot;)</code></pre>
+setwd(&quot;~/Documents/class/15.1/psych254&quot;)
+source(&quot;helper/useful.R&quot;)</code></pre>
 <pre><code>## Warning: package 'lubridate' was built under R version 3.1.2</code></pre>
 <pre><code>## 
 ## Attaching package: 'lubridate'
@@ -85,7 +85,7 @@ source(&quot;../helper/useful.R&quot;)</code></pre>
 <div id="part-1-data-cleaning" class="section level2">
 <h2>Part 1: Data cleaning</h2>
 <p>The first part of this exercise actually just consists of getting the data in a format usable for analysis. This is not trivial. Let’s try it:</p>
-<pre class="r"><code>d &lt;- read.csv(&quot;../data/janiszewski_rep_exercise.csv&quot;)
+<pre class="r"><code>d &lt;- read.csv(&quot;data/janiszewski_rep_exercise.csv&quot;)
 relevant.cats&lt;-c(&quot;HITId&quot;,&quot;WorkerId&quot;,&quot;WorkTimeInSeconds&quot;,&quot;Input.condition&quot;,
                  &quot;Input.price1&quot;,&quot;Input.price2&quot;,&quot;Input.price3&quot;,
                  &quot;Answer.dog_cost&quot;,&quot;Answer.plasma_cost&quot;,&quot;Answer.sushi_cost&quot;)
@@ -103,9 +103,7 @@ d0$Input.price3&lt;-factor(d0$Input.price3)
 
 d0$Answer.dog_cost&lt;-as.numeric(d0$Answer.dog_cost)
 d0$Answer.plasma_cost&lt;-as.numeric(d0$Answer.plasma_cost)
-d0$Answer.sushi_cost&lt;-as.numeric(d0$Answer.sushi_cost)
-
-###</code></pre>
+d0$Answer.sushi_cost&lt;-as.numeric(d0$Answer.sushi_cost)</code></pre>
 <p>Fine, right? Why can’t we go forward with the analysis?</p>
 <p>HINT: try computing some summary statistics for the different items. Also, are there any participants that did the task more than once?</p>
 <p>No, there don’t seem to be…</p>
@@ -114,8 +112,8 @@ d0$Answer.sushi_cost&lt;-as.numeric(d0$Answer.sushi_cost)
 <div id="part-2-making-these-data-tidy" class="section level2">
 <h2>Part 2: Making these data tidy</h2>
 <p>Now let’s start with the cleaned data, so that we are all beginning from the same place.</p>
-<pre class="r"><code>setwd(&quot;~/Documents/class/15.1/psych254_materials/analyses&quot;)
-d &lt;- read.csv(&quot;../data/janiszewski_rep_cleaned.csv&quot;)</code></pre>
+<pre class="r"><code>setwd(&quot;~/Documents/class/15.1/psych254/&quot;)
+d &lt;- read.csv(&quot;data/janiszewski_rep_cleaned.csv&quot;)</code></pre>
 <p>This data frame is in <em>wide</em> format - that means that each row is a participant and there are multiple observations per participant. This data is not <em>tidy</em>.</p>
 <p>To make this data tidy, we’ll do some cleanup. First, remove the columns you don’t need, using the verb <code>select</code>.</p>
 <p>HINT: <code>?select</code> and the examples of helper functions will help you be efficient.</p>
@@ -147,7 +145,9 @@ d &lt;- read.csv(&quot;../data/janiszewski_rep_cleaned.csv&quot;)</code></pre>
 <div id="part-3-manipulating-the-data-using-dplyr" class="section level2">
 <h2>Part 3: Manipulating the data using dplyr</h2>
 <p>Try also using the dplyr <code>distinct</code> function to remove the duplicate participants from the raw csv file that you discovered in part 1.</p>
-<pre class="r"><code>d.raw &lt;- read.csv(&quot;../data/janiszewski_rep_exercise.csv&quot;)
+<pre class="r"><code>getwd()</code></pre>
+<pre><code>## [1] &quot;/Users/mht/Documents/class/15.1/psych254&quot;</code></pre>
+<pre class="r"><code>d.raw &lt;- read.csv(&quot;data/janiszewski_rep_exercise.csv&quot;)
 d.unique.subs &lt;- distinct(d.raw, WorkerId)</code></pre>
 <p>As we said in class, a good thing to do is always to check histograms of the response variable. Do that now, using either regular base graphics or ggplot. What can you conclude?</p>
 <pre class="r"><code>qplot(data=d.tidy,x=Ans,geom='histogram')+

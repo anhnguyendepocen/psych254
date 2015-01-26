@@ -1,9 +1,11 @@
 ---
 title: 'Psych 254 W15 PS #1'
-author: "Mike Frank"
+author: "MH Tessler (working with S Bridgers)"
 date: "January 11, 2015"
 output: html_document
 ---
+
+
 
 This is problem set #1, in which we hope you will practice the packages tidyr and dplyr. There are some great cheat sheets from [RStudio](http://www.rstudio.com/resources/cheatsheets/).
 
@@ -23,8 +25,8 @@ I pretty much always clear the workspace and load the same basic helper function
 rm(list=ls())
 library(tidyr)
 library(dplyr)
-setwd("~/Documents/class/15.1/psych254_materials/analyses")
-source("../helper/useful.R")
+setwd("~/Documents/class/15.1/psych254")
+source("helper/useful.R")
 ```
 
 Note that I'm using a "relative" path (the "../helper") rather than an absolute path (e.g. "/Users/mcfrank/code/projects/etc..."). The relative path means that someone else can run your code by changing to the right directory, while the absolute path will force someone else to make trivial changes every time they want to run it.
@@ -35,7 +37,7 @@ Part 1: Data cleaning
 The first part of this exercise actually just consists of getting the data in a format usable for analysis. This is not trivial. Let's try it:
 
 ```{r data1}
-d <- read.csv("../data/janiszewski_rep_exercise.csv")
+d <- read.csv("data/janiszewski_rep_exercise.csv")
 relevant.cats<-c("HITId","WorkerId","WorkTimeInSeconds","Input.condition",
                  "Input.price1","Input.price2","Input.price3",
                  "Answer.dog_cost","Answer.plasma_cost","Answer.sushi_cost")
@@ -55,7 +57,6 @@ d0$Answer.dog_cost<-as.numeric(d0$Answer.dog_cost)
 d0$Answer.plasma_cost<-as.numeric(d0$Answer.plasma_cost)
 d0$Answer.sushi_cost<-as.numeric(d0$Answer.sushi_cost)
 
-###
 
 ```
 
@@ -75,8 +76,8 @@ Part 2: Making these data tidy
 Now let's start with the cleaned data, so that we are all beginning from the same place.
 
 ```{r data2}
-setwd("~/Documents/class/15.1/psych254_materials/analyses")
-d <- read.csv("../data/janiszewski_rep_cleaned.csv")
+setwd("~/Documents/class/15.1/psych254/")
+d <- read.csv("data/janiszewski_rep_cleaned.csv")
 ```
 
 This data frame is in *wide* format - that means that each row is a participant and there are multiple observations per participant. This data is not *tidy*.
@@ -137,7 +138,8 @@ Part 3: Manipulating the data using dplyr
 Try also using the dplyr `distinct` function to remove the duplicate participants from the raw csv file that you discovered in part 1.
 
 ```{r}
-d.raw <- read.csv("../data/janiszewski_rep_exercise.csv")
+getwd()
+d.raw <- read.csv("data/janiszewski_rep_exercise.csv")
 d.unique.subs <- distinct(d.raw, WorkerId)
 ```
 

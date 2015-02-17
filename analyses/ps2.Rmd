@@ -35,16 +35,22 @@ qplot(diamonds$carat, diamonds$price)
 Scatter plots are trivial, and easy to add features to. Modify this plot so that it uses the dataframe rather than working from variables in the general namespace (good to get away from retyping `diamonds$` every time you reference a variable). 
 
 ```{r}
+qplot(data=diamonds, x = carat, y = price)
 ```
 
 Try adding clarity and cut, using shape and color as your visual variables. 
 
 ```{r}
+qplot(data=diamonds, x = carat, y = price, shape = clarity, color = cut)
+
 ```
 
 One of the primary benefits of `ggplot2` is the use of facets - also known as small multiples in the Tufte vocabulary. That last plot was probably hard to read. Facets could make it better. Try adding a `facets = x ~ y` argument. `x ~ y` means row facets are by x, column facets by y. 
 
 ```{r}
+
+qplot(data = diamonds, x= carat, y = price, facets = clarity ~ cut)
+
 ```
 
 But facets can also get overwhelming. Try to strike a good balance between color, shape, and faceting.
@@ -52,6 +58,10 @@ But facets can also get overwhelming. Try to strike a good balance between color
 HINT: `facets = . ~ x` puts x on the columns, but `facets = ~ x` (no dot) *wraps* the facets. These are underlying calls to different functions, `facet_wrap` (no dot) and `facet_grid` (two arguments). 
 
 ```{r}
+
+qplot(data = diamonds, x =carat, y = price, facets = ~clarity, color = cut)+
+  scale_color_brewer(palette = 2, type = 'div')
+
 ```
 
 The basic unit of a ggplot plot is a "geom" - a mapping between data (via an "aesthetic") and a particular geometric configuration on coordinate axes. 
@@ -59,16 +69,22 @@ The basic unit of a ggplot plot is a "geom" - a mapping between data (via an "ae
 Let's try some other geoms and manipulate their parameters. First, try a histogram (`geom="hist"`). 
 
 ```{r}
+qplot(data = diamonds, x = price, geom="histogram")
 ```
 
 Now facet your histogram by clarity and cut. 
 
 ```{r}
+qplot(data = diamonds, x = price, geom="histogram", facets = clarity~cut)
+
 ```
 
 I like a slightly cleaner look to my plots. Luckily, ggplot allows you to add "themes" to your plots. Try doing the same plot but adding `+ theme_bw()` or `+ theme_classic()`. Different themes work better for different applications, in my experience. 
 
 ```{r}
+qplot(data = diamonds, x =price, facets = ~clarity, fill = cut)+
+  scale_fill_brewer(palette = 2, type = 'div')+
+  theme_grey()
 ```
 
 Part 1B: Exploring ggplot2 using ggplot
@@ -89,12 +105,17 @@ Try writing this as a single set of additions (e.g. one line of R code, though y
 
 
 ```{r}
+ggplot(diamonds, aes(x = carat, y = price, colour = carat))+
+  geom_point()
 ```
 
 
 You can also set the aesthetic separately for each geom, and make some great plots this way. Though this can get complicated. Try using `ggplot` to build a histogram of prices. 
 
 ```{r}
+ggplot(diamonds, aes(x=price))+
+  geom_histogram()
+
 ```
 
 Part 2: Diving into real data: Sklar et al. (2012)
@@ -189,8 +210,10 @@ gcd <- function(x,y) {
 
 
 as.integer(levels(factor(d$RT)))
-
 ```
+
+MH: I thought I could look at the lowest common denominator, but then the first entry `101` is prime, which suggests there is some rounding going on.
+
 
 Sklar et al. did two manipulation checks. Subjective - asking participants whether they saw the primes - and objective - asking them to report the parity of the primes (even or odd) to find out if they could actually read the primes when they tried. Examine both the unconscious and conscious manipulation checks (this information is stored in subinfo). What do you see? Are they related to one another?
 
@@ -201,15 +224,19 @@ qplot(subjective.test,data=d)
 summary(d$objective.test)
 qplot(objective.test,data=d)
 
+qplot(objective.test, subjective.test, data =d)+
+  stat_smooth(method="glm", family="binomial")
+
 summary(lm(objective.test~subjective.test, data=d)) # seem to be related
 ```
+
+MH: The two are related to one another. 
 
 OK, let's turn back to the measure and implement Sklar et al.'s exclusion criterion. You need to have said you couldn't see (subjective test) and also be not significantly above chance on the objective test (< .6 correct). Call your new data frame `ds`.
 
 ```{r}
 ds<- d %>%
   filter(objective.test < 0.6 & subjective.test == 0)
-
 ```
 
 Sklar et al.'s analysis
@@ -222,7 +249,7 @@ HINT: first take averages within subjects, then compute your error bars across p
 ```{r}
 
 ds.means <- ds %>%
-  group_by(subid, congruent,operand,presentation.time) %>%
+  group_by(subid,congruent,operand,presentation.time) %>%
   summarise(m = mean(RT, na.rm=T)) %>%
   spread(congruent, m) %>% 
   mutate(diff = no - yes) %>% 
@@ -232,7 +259,7 @@ ds.means <- ds %>%
 
 ```
 
-Now plot this summary, giving more or less the bar plot that Sklar et al. gave (though I would keep operation as a variable here. Make sure you get some error bars on there (e.g. `geom_errorbar` or `geom_linerange`). 
+Now plot this summary, giving more or less the bar plot that Sklar et al. gave (though I would keep operation as a variable here. Make sure you get åsome error bars on there (e.g. `geom_errorbar` or `geom_linerange`). 
 
 ```{r}
 
@@ -240,8 +267,8 @@ ggplot(data=ds.means,
        aes(x = presentation.time, 
            y = groupm))+
   geom_bar(position='identity',stat='identity', width=0.5)+
-  geom_errorbar(aes(ymin= groupm-sterr, 
-                    ymax=groupm+sterr),
+  geom_errorbar(aes(ymin= groupm-0.5*sterr, 
+                    ymax=groupm+0.5*sterr),
                 width=0.2)+
   facet_wrap(~operand)
 
@@ -249,9 +276,15 @@ ggplot(data=ds.means,
 
 What do you see here? How close is it to what Sklar et al. report? Do the error bars match? How do you interpret these data? 
 
+MH: Their error bars are 0.5 * standard error. 
+
 Challenge problem: verify Sklar et al.'s claim about the relationship between RT and the objective manipulation check.
 
 ```{r}
+ggplot(data=ds, aes(y=RT,x=objective.test))+
+  geom_point()
+
+with(ds,cor(RT,objective.test,use="pairwise.complete.obs")) # no correlation
 ```
 
 Your own analysis
@@ -260,9 +293,64 @@ Your own analysis
 Show us what you would do with these data, operating from first principles. What's the fairest plot showing a test of Sklar et al.'s original hypothesis that people can do arithmetic "non-consciously"?
 
 ```{r}
+
+ggplot(data = d, aes(x=RT))+
+  geom_histogram()+
+  facet_wrap(~subid)
 ```
 
-Challenge problem: Do you find any statistical support for Sklar et al.'s findings?
+RT histogram for each subject. Everyone is reasonably well behaved.
 
 ```{r}
+ds.means1 <- d %>%
+  group_by(subid,congruent,operand,presentation.time) %>%
+  summarise(m = mean(RT, na.rm=T)) %>%
+  spread(congruent, m) %>% 
+  mutate(diff = no - yes) %>% 
+  select(-no,-yes)
+
+
+ds.means2 <- ds %>%
+  group_by(subid,congruent,operand,presentation.time) %>%
+  summarise(m = mean(RT, na.rm=T)) %>%
+  spread(congruent, m) %>% 
+  mutate(diff = no - yes) %>% 
+  select(-no,-yes)
+
+ds.means1$cat <- 'all'
+ds.means2$cat <- 'filtered'
+
+ds.m<-bind_rows(ds.means1,ds.means2)
+
+ggplot(data = subset(ds.m,operand=='subtraction'), aes(x=diff))+
+  facet_wrap(cat~presentation.time, scales='fixed')+
+  geom_histogram(binwidth=5)+
+  xlim(-100,100)+
+  ylim(0,5)
+
 ```
+
+It seems that filtering is having a major effect on the distributions of reaction times.
+
+```{r}
+ds.means <- d %>%
+  group_by(subid,congruent,operand,presentation.time) %>%
+  summarise(m = mean(RT, na.rm=T)) %>%
+  spread(congruent, m) %>% 
+  mutate(diff = no - yes) %>% 
+  select(-no,-yes)%>%
+  group_by(operand,presentation.time) %>%
+  summarise(groupm = mean(diff), sterr=sem(diff))
+
+ggplot(data=ds.means, 
+       aes(x = presentation.time, 
+           y = groupm))+
+  geom_bar(position='identity',stat='identity', width=0.5)+
+  geom_errorbar(aes(ymin= groupm-1.96*sterr, 
+                    ymax=groupm+1.96*sterr),
+                width=0.2)+
+  facet_wrap(~operand)
+
+```
+
+The effect goes away if we include all participants.
